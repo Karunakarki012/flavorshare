@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}About - FlavorShare{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="bg-white p-5 rounded shadow-sm">
+            <h1 class="text-center mb-4">About FlavorShare</h1>
+            
+            <div class="text-center mb-5">
+                <i class="fas fa-utensils fa-4x text-primary"></i>
+            </div>
+            
+            <h3>Our Story</h3>
+            <p class="lead mb-4">
+                FlavorShare was born from a simple idea: everyone has a favorite recipe worth sharing. 
+                Whether it's your grandmother's secret pasta sauce, your famous chocolate chip cookies, 
+                or that healthy salad you created, we believe these recipes deserve a place to be shared 
+                and celebrated.
+            </p>
+            
+            <h3 class="mt-5">Our Mission</h3>
+            <p class="lead mb-4">
+                Our mission is to create a community where food lovers can come together to share, discover, 
+                and save recipes. We want to make cooking accessible and enjoyable for everyone, from 
+                beginners to seasoned chefs.
+            </p>
+            
+            <div class="row mt-5">
+                <div class="col-md-4 text-center mb-4">
+                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                    <h5>Community Driven</h5>
+                    <p>Join thousands of food enthusiasts sharing their passion</p>
+                </div>
+                <div class="col-md-4 text-center mb-4">
+                    <i class="fas fa-heart fa-3x text-primary mb-3"></i>
+                    <h5>Easy to Use</h5>
+                    <p>Simple, intuitive platform for sharing and discovering recipes</p>
+                </div>
+                <div class="col-md-4 text-center mb-4">
+                    <i class="fas fa-globe fa-3x text-primary mb-3"></i>
+                    <h5>Global Flavors</h5>
+                    <p>Discover recipes from around the world</p>
+                </div>
+            </div>
+            
+            <h3 class="mt-5">Features</h3>
+            <ul class="list-group list-group-flush mb-4">
+                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i>Create and share your own recipes</li>
+                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i>Browse recipes by category</li>
+                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i>Search for specific recipes</li>
+                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i>Save your favorite recipes</li>
+                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i>Comment and interact with other cooks</li>
+                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i>Create your personal recipe collection</li>
+            </ul>
+            
+            <div class="text-center mt-5">
+                <h4>Ready to start sharing?</h4>
+                {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg mt-3">
+                    <i class="fas fa-user-plus me-2"></i>Join FlavorShare Today
+                </a>
+                {% else %}
+                <a href="{{ url_for('new_recipe') }}" class="btn btn-primary btn-lg mt-3">
+                    <i class="fas fa-plus-circle me-2"></i>Share Your First Recipe
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

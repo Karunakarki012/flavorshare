@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipe.title }} - FlavorShare{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <!-- Recipe Header -->
+        <div class="recipe-header">
+            <h1 class="mb-3">{{ recipe.title }}</h1>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center">
+                    <img src="{{ url_for('static', filename='images/' + recipe.author.image_file) }}" 
+                         alt="{{ recipe.author.username }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                    <div>
+                        <span class="fw-bold">{{ recipe.author.username }}</span>
+                        <br>
+                        <small class="text-muted">{{ recipe.date_posted.strftime('%B %d, %Y') }}</small>
+                    </div>
+                </div>
+                <div>
+                    {% if current_user.is_authenticated %}
+                        <form action="{{ url_for('toggle_favorite', recipe_id=recipe.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger favorite-btn">
+                                <i class="{% if is_favorite %}fas{% else %}far{% endif %} fa-heart me-1"></i>
+                                {% if is_favorite %}Saved{% else %}Save{% endif %}
+                            </button>
+                        </form>
+                    {% endif %}
+                    
+                    {% if recipe.author == current_user %}
+                        <div class="btn-group">
+                            <a href="{{ url_for('update_recipe', recipe_id=recipe.id) }}" class="btn btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <img src="{{ url_for('static', filename='images/' + recipe.image_file) }}" 
+                 alt="{{ recipe.title }}" class="recipe-image mb-4">
+            
+            <!-- Recipe Info -->
+            <div class="recipe-info">
+                <div class="recipe-info-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Prep Time</span>
+                    <p>{{ recipe.prep_time }} mins</p>
+                </div>
+                <div class="recipe-info-item">
+                    <i class="fas fa-fire"></i>
+                    <span>Cook Time</span>
+                    <p>{{ recipe.cook_time }} mins</p>
+                </div>
+                <div class="recipe-info-item">
+                    <i class="fas fa-users"></i>
+                    <span>Servings</span>
+                    <p>{{ recipe.servings }}</p>
+                </div>
+                <div class="recipe-info-item">
+                    <i class="fas fa-tag"></i>
+                    <span>Category</span>
+                    <p>{{ recipe.category.name }}</p>
+                </div>
+            </div>
+            
+            <!-- Description -->
+            <div class="mb-4">
+                <h4>Description</h4>
+                <p class="lead">{{ recipe.description }}</p>
+            </div>
+            
+            <!-- Ingredients -->
+            <div class="ingredients-list">
+                <h4>Ingredients</h4>
+                <ul>
+                    {% for ingredient in recipe.ingredients.split('\n') %}
+                        {% if ingredient.strip() %}
+                            <li>{{ ingredient }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <!-- Instructions -->
+            <div class="instructions-list">
+                <h4>Instructions</h4>
+                <ol>
+                    {% for instruction in recipe.instructions.split('\n') %}
+                        {% if instruction.strip() %}
+                            <li>{{ instruction }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ol>
+            </div>
+        </div>
+        
+        <!-- Comments Section -->
+        <div class="comments-section">
+            <h4 class="mb-4">Comments ({{ comments|length }})</h4>
+            
+            {% if current_user.is_authenticated %}
+                <form action="{{ url_for('add_comment', recipe_id=recipe.id) }}" method="POST" class="mb-4">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.content.label(class="form-label") }}
+                        {{ form.content(class="form-control", rows=3, placeholder="Share your thoughts about this recipe...") }}
+                    </div>
+                    {{ form.submit(class="btn btn-primary") }}
+                </form>
+            {% else %}
+                <div class="alert alert-info">
+                    Please <a href="{{ url_for('login') }}">login</a> to leave a comment.
+                </div>
+            {% endif %}
+            
+            {% for comment in comments %}
+                <div class="comment">
+                    <div class="comment-header">
+                        <span class="comment-author">
+                            <img src="{{ url_for('static', filename='images/' + comment.author.image_file) }}" 
+                                 alt="{{ comment.author.username }}" class="rounded-circle me-1" style="width: 25px; height: 25px; object-fit: cover;">
+                            {{ comment.author.username }}
+                        </span>
+                        <span>{{ comment.date_posted.strftime('%B %d, %Y') }}</span>
+                    </div>
+                    <div class="comment-content">
+                        {{ comment.content }}
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-muted text-center">No comments yet. Be the first to comment!</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+{% if recipe.author == current_user %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Recipe</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete "{{ recipe.title }}"? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('delete_recipe', recipe_id=recipe.id) }}" method="POST">
+                    <input type="submit" class="btn btn-danger" value="Delete">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

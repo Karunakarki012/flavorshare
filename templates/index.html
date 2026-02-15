@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}FlavorShare - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center text-white py-5 mb-5">
+    <div class="container">
+        <h1 class="display-3 fw-bold mb-3">Welcome to FlavorShare</h1>
+        <p class="lead mb-4">Discover, share, and save your favorite recipes from around the world</p>
+        {% if not current_user.is_authenticated %}
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('register') }}" class="btn btn-light btn-lg px-4">
+                <i class="fas fa-user-plus me-2"></i>Get Started
+            </a>
+            <a href="{{ url_for('recipes') }}" class="btn btn-outline-light btn-lg px-4">
+                <i class="fas fa-book-open me-2"></i>Browse Recipes
+            </a>
+        </div>
+        {% else %}
+        <a href="{{ url_for('new_recipe') }}" class="btn btn-light btn-lg px-4">
+            <i class="fas fa-plus-circle me-2"></i>Share Your Recipe
+        </a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="mb-5">
+    <h2 class="text-center mb-4">Popular Categories</h2>
+    <div class="row g-4">
+        {% for category in categories[:6] %}
+        <div class="col-md-4 col-lg-2">
+            <a href="{{ url_for('recipes', category=category.id) }}" class="text-decoration-none">
+                <div class="category-card text-center p-3 bg-white rounded shadow-sm">
+                    <i class="fas fa-utensils fa-3x text-primary mb-2"></i>
+                    <h5 class="mb-0">{{ category.name }}</h5>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Featured Recipes -->
+<section class="mb-5">
+    <h2 class="text-center mb-4">Latest Recipes</h2>
+    <div class="row g-4">
+        {% for recipe in recipes.items %}
+        <div class="col-md-6 col-lg-4">
+            <div class="recipe-card">
+                <img src="{{ url_for('static', filename='images/' + recipe.image_file) }}" 
+                     alt="{{ recipe.title }}" class="card-img-top">
+                <div class="card-body">
+                    <h5 class="card-title">{{ recipe.title }}</h5>
+                    <p class="card-text">{{ recipe.description[:100] }}...</p>
+                    <div class="recipe-meta">
+                        <span><i class="far fa-user me-1"></i>{{ recipe.author.username }}</span>
+                        <span><i class="far fa-clock me-1"></i>{{ recipe.prep_time + recipe.cook_time }} min</span>
+                        <span><i class="far fa-comment me-1"></i>{{ recipe.comments|length }}</span>
+                    </div>
+                    <a href="{{ url_for('recipe', recipe_id=recipe.id) }}" class="btn btn-primary w-100 mt-3">
+                        View Recipe
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if recipes.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% for page_num in recipes.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                    {% if recipes.page == page_num %}
+                        <li class="page-item active">
+                            <a class="page-link" href="{{ url_for('home', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('home', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+    {% endif %}
+</section>
+
+<!-- Call to Action -->
+<section class="bg-primary text-white text-center py-5 rounded">
+    <div class="container">
+        <h2 class="mb-3">Ready to Share Your Recipes?</h2>
+        <p class="lead mb-4">Join our community of food lovers and share your culinary creations</p>
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
+            <i class="fas fa-user-plus me-2"></i>Join Now
+        </a>
+        {% else %}
+        <a href="{{ url_for('new_recipe') }}" class="btn btn-light btn-lg">
+            <i class="fas fa-plus-circle me-2"></i>Add Your Recipe
+        </a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

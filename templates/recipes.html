@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Recipes - FlavorShare{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Sidebar with Categories and Advanced Filters -->
+    <div class="col-lg-3 mb-4">
+        <!-- Categories Section -->
+        <div class="bg-white p-3 rounded shadow-sm mb-3">
+            <h4 class="mb-3">📁 Categories</h4>
+            <div class="list-group">
+                <a href="{{ url_for('recipes') }}" 
+                   class="list-group-item list-group-item-action {% if not selected_category %}active{% endif %}">
+                    All Recipes
+                </a>
+                {% for category in categories %}
+                <a href="{{ url_for('recipes', category=category.id, sort=sort_by, min_time=min_time, max_time=max_time) }}" 
+                   class="list-group-item list-group-item-action {% if selected_category == category.id %}active{% endif %}">
+                    {{ category.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Advanced Filters Section (NEW) -->
+        <div class="bg-white p-3 rounded shadow-sm">
+            <h4 class="mb-3">⚡ Advanced Filters</h4>
+            <form method="get" action="{{ url_for('recipes') }}">
+                <!-- Preserve existing filters -->
+                <input type="hidden" name="category" value="{{ selected_category }}">
+                <input type="hidden" name="search" value="{{ search }}">
+                
+                <!-- Sort By -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Sort by:</label>
+                    <select name="sort" class="form-select" onchange="this.form.submit()">
+                        <option value="newest" {% if sort_by == 'newest' or not sort_by %}selected{% endif %}>🆕 Newest First</option>
+                        <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>📅 Oldest First</option>
+                        <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>❤️ Most Popular</option>
+                        <option value="quickest" {% if sort_by == 'quickest' %}selected{% endif %}>⚡ Quickest (Under 30 min)</option>
+                    </select>
+                </div>
+                
+                <!-- Cooking Time Filter -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Cooking Time (minutes):</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <input type="number" name="min_time" class="form-control" placeholder="Min" value="{{ min_time or '' }}" min="0">
+                        </div>
+                        <div class="col-6">
+                            <input type="number" name="max_time" class="form-control" placeholder="Max" value="{{ max_time or '' }}" min="0">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Apply Filters Button -->
+                <button type="submit" class="btn btn-primary w-100 mb-2">
+                    <i class="fas fa-filter me-2"></i>Apply Filters
+                </button>
+                <a href="{{ url_for('recipes') }}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-undo me-2"></i>Reset Filters
+                </a>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Recipes Grid -->
+    <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                {% if selected_category %}
+                    {{ categories|selectattr('id', 'equalto', selected_category)|first|attr('name') }}
+                {% else %}
+                    All Recipes
+                {% endif %}
+                {% if min_time or max_time %}
+                    <small class="text-muted fs-6">
+                        ({% if min_time %}≥{{ min_time }}min{% endif %}
+                        {% if min_time and max_time %} - {% endif %}
+                        {% if max_time %}≤{{ max_time }}min{% endif %})
+                    </small>
+                {% endif %}
+            </h2>
+            <span class="text-muted">{{ recipes.total }} recipes found</span>
+        </div>
+        
+        {% if recipes.items %}
+        <div class="row g-4">
+            {% for recipe in recipes.items %}
+            <div class="col-md-6 col-xl-4">
+                <div class="recipe-card">
+                    <img src="{{ url_for('static', filename='images/' + recipe.image_file) }}" 
+                         alt="{{ recipe.title }}" class="card-img-top">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ recipe.title }}</h5>
+                        <p class="card-text">{{ recipe.description[:80] }}...</p>
+                        <div class="recipe-meta">
+                            <span><i class="far fa-user me-1"></i>{{ recipe.author.username }}</span>
+                            <span><i class="far fa-clock me-1"></i>{{ recipe.prep_time + recipe.cook_time }} min</span>
+                            <span><i class="far fa-heart me-1"></i>{{ recipe.favorites|length }}</span>
+                        </div>
+                        <a href="{{ url_for('recipe', recipe_id=recipe.id) }}" class="btn btn-primary w-100 mt-3">
+                            View Recipe
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if recipes.pages > 1 %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% for page_num in recipes.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        {% if recipes.page == page_num %}
+                            <li class="page-item active">
+                                <a class="page-link" href="{{ url_for('recipes', page=page_num, category=selected_category, search=search, sort=sort_by, min_time=min_time, max_time=max_time) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('recipes', page=page_num, category=selected_category, search=search, sort=sort_by, min_time=min_time, max_time=max_time) }}">{{ page_num }}</a>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-utensils fa-4x text-muted mb-3"></i>
+            <h3>No Recipes Found</h3>
+            <p class="text-muted">Try adjusting your search or filter criteria</p>
+            <a href="{{ url_for('recipes') }}" class="btn btn-primary">View All Recipes</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
